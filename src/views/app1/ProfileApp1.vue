@@ -1,0 +1,87 @@
+<template>
+  <div
+    class="profile-page"
+    v-if="github_userdata && github_repos && !isLoading"
+  >
+    <SidebarApp1 :github_userdata="github_userdata" />
+    <ReposApp1 :github_repos="github_repos" />
+  </div>
+
+  <div class="loading-animation" v-if="isLoading">
+    <div class="loading-animation-container"><h1>Loading...</h1></div>
+  </div>
+  <PageTitleApp1 :title="`${this.$route.params.username} | githup`" />
+</template>
+
+<script>
+import axios from "axios";
+import SidebarApp1 from "@/components/app1/SidebarApp1";
+import ReposApp1 from "@/components/app1/ReposApp1";
+import PageTitleApp1 from "@/components/app1/PageTitleApp1";
+
+export default {
+  name: "ProfileApp1",
+  components: { PageTitleApp1, ReposApp1, SidebarApp1 },
+  data() {
+    return {
+      username: this.$route.params.username,
+      github_userdata: {},
+      github_repos: [],
+      isLoading: true
+    };
+  },
+  methods: {},
+  mounted() {
+    if (!this.username) {
+      router.push("/");
+    } else {
+      axios
+        .get(`https://api.github.com/users/${this.username}`)
+        .then(data => {
+          if (data.status === 200) this.github_userdata = data.data;
+          this.isLoading = false;
+        })
+        .catch(err => {
+          this.$router.push("/");
+          console.log(err);
+        });
+      axios
+        .get(`https://api.github.com/users/${this.username}/repos`)
+        .then(data => {
+          if (data.status === 200) {
+            this.github_repos = data.data;
+            console.log(data.data);
+          }
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    }
+  }
+};
+</script>
+
+<!--<style scoped lang="scss">-->
+<style lang="scss">
+.loading-animation {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  background: #fff;
+
+  &-container {
+    width: 200px;
+    height: auto;
+  }
+}
+
+.profile-page {
+  height: 100vh;
+  max-width: 1366px;
+  margin-right: auto;
+  margin-left: auto;
+}
+</style>
